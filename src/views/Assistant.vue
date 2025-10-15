@@ -5,16 +5,36 @@ const messages = ref([
   { role: 'ai', text: '你好，我是你的诗词学习伙伴。想聊哪首诗？' }
 ])
 const input = ref('')
+const API_URL = (typeof localStorage !== 'undefined' && localStorage.getItem('AI_API')) || ''
+const apiInput = ref(API_URL)
+function saveApi() {
+  try { localStorage.setItem('AI_API', apiInput.value || '') } catch {}
+}
 
 function send() {
   const text = input.value.trim()
   if (!text) return
   messages.value.push({ role: 'user', text })
   input.value = ''
-  // 模拟 AI 回复（后续接入接口）
-  setTimeout(() => {
-    messages.value.push({ role: 'ai', text: '好的，我会从意象与情感脉络开始分析。' })
-  }, 500)
+  // 优先尝试后端接口，失败则使用本地 Mock
+  if (API_URL) {
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: text })
+    }).then(r => r.json()).then(data => {
+      const reply = data?.reply || '（占位）我将从意象与情感脉络开始分析。'
+      messages.value.push({ role: 'ai', text: reply })
+    }).catch(() => {
+      setTimeout(() => {
+        messages.value.push({ role: 'ai', text: '好的，我会从意象与情感脉络开始分析。' })
+      }, 400)
+    })
+  } else {
+    setTimeout(() => {
+      messages.value.push({ role: 'ai', text: '好的，我会从意象与情感脉络开始分析。' })
+    }, 400)
+  }
 }
 </script>
 
@@ -22,6 +42,12 @@ function send() {
   <div class="container section">
     <h2 class="section-title">AI 助手 · 对话式赏析</h2>
     <div class="detail-card" style="display:flex;flex-direction:column;gap:10px;min-height:360px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="block-title" style="margin:0;">AI 接口：</span>
+        <input v-model="apiInput" placeholder="http(s)://your-endpoint" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:6px 10px;outline:none;">
+        <button @click="saveApi" style="border:1px solid var(--border);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink-soft)">保存</button>
+        <span style="color:#9ca3af;font-size:12px;">未配置将自动使用本地 Mock</span>
+      </div>
       <div style="flex:1; overflow:auto; display:flex; flex-direction:column; gap:10px;">
         <div
           v-for="(m, i) in messages"
