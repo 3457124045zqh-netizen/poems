@@ -22,8 +22,8 @@ function exportCSV() {
   const rows = [['意象', '频次'], ...chart.value.map(x => [x.name, x.value])]
   const QUOTE = '"'
   const COMMA = ','
-  const NEWLINE = '
-'
+  const NEWLINE = '\n'
+
   const escapeCSV = (v) => QUOTE + String(v).replace(/"/g, '""') + QUOTE
   const csv = rows.map(r => r.map(escapeCSV).join(COMMA)).join(NEWLINE)
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
