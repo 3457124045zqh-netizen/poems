@@ -1,17 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import poems from '../data/poems'
 import { getPoem, listAnnotations } from '../api/supabase'
 
 const route = useRoute()
 const router = useRouter()
 
-const localPoem = computed(() => poems.find(p => String(p.id) === String(route.params.id)))
+
 const remotePoem = ref(null)
 const remoteAnns = ref([])
 
-const poem = computed(() => remotePoem.value || localPoem.value)
+const poem = computed(() => remotePoem.value)
 const vertical = ref(false)
 const openAnalysis = ref(true)
 const openMedia = ref(true)
@@ -94,8 +93,8 @@ function back() {
               <div v-show="openAnalysis" class="content">
                 <p v-if="selectedLine>=0"><strong>逐句解析：</strong>{{ lineAnnotation }}</p>
                 <p>意象：{{ poem.imagery.join('、') }}</p>
-                <p>情感脉络：从景入情，以“{{ poem.keyEmotion }}”贯穿全篇。</p>
-                <p>文化关联：{{ poem.cultureHint }}</p>
+                <p>情感脉络：从景入情，以“{{ poem.key_emotion }}”贯穿全篇。</p>
+                <p>文化关联：{{ poem.culture_hint }}</p>
                 <p style="color:#9ca3af">说明：这里将对接后台 AI 接口返回结构化赏析。</p>
               </div>
             </div>

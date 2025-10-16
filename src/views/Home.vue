@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import poems from '../data/poems'
 import { listPoems } from '../api/supabase'
 
 const router = useRouter()
@@ -13,8 +12,8 @@ const entries = [
   { label: 'AI 赏析', to: '/assistant', icon: '✨' },
 ]
 
-const all = ref(poems)
-const featured = ref(poems.slice(0, 6))
+const all = ref([])
+const featured = ref([])
 const q = ref('')
 const filtered = computed(() => {
   const kw = q.value.trim()
