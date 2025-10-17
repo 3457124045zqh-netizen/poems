@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { listEducationResources } from '../api/supabase'
 
 const grades = ['小学', '初中', '高中']
 const selected = ref('小学')
@@ -11,6 +12,10 @@ const syllabus = [
 ]
 
 const plan = ref(null)
+const resources = ref([])
+onMounted(async () => {
+  try { resources.value = await listEducationResources(10) } catch {}
+})
 function genPlan(item) {
   plan.value = {
     title: item.title + ' 教案（占位）',
@@ -48,6 +53,16 @@ function genPlan(item) {
           </button>
         </div>
       </div>
+    </div>
+
+    <div class="detail-card" style="margin-bottom:14px;">
+      <h3 class="block-title" style="margin:0 0 6px;">云端教学资源（education_resources）</h3>
+      <ul style="margin:0;padding-left:18px;">
+        <li v-for="(r,i) in resources" :key="i">
+          {{ r.grade }} · {{ r.syllabus_edition }} · 课标片段：{{ r.lesson_plan?.objectives?.join?.('、') || r.lesson_plan?.activities?.join?.('、') || '—' }}
+        </li>
+        <li v-if="!resources.length" style="color:#9ca3af">暂无资源（RLS 可能限制写入）</li>
+      </ul>
     </div>
 
     <div class="cards">

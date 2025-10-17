@@ -1,10 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { listAIResponses } from '../api/supabase'
 
 const messages = ref([
   { role: 'ai', text: '你好，我是你的诗词学习伙伴。想聊哪首诗？' }
 ])
 const input = ref('')
+const aiLogs = ref([])
+onMounted(async () => {
+  try { aiLogs.value = await listAIResponses(5) } catch {}
+})
 const API_URL = (typeof localStorage !== 'undefined' && localStorage.getItem('AI_API')) || ''
 const apiInput = ref(API_URL)
 function saveApi() {
@@ -66,7 +71,18 @@ function send() {
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;">
+      <div class="detail-card" style="margin-top:10px;">
+        <div class="card-meta" style="margin-bottom:6px;">最近 AI 记录（来自表 ai_responses）</div>
+        <ul style="margin:0;padding-left:18px;">
+          <li v-for="(r,i) in aiLogs" :key="i">
+            <span style="color:var(--muted);font-size:12px;">{{ new Date(r.created_at).toLocaleString() }}</span>
+            ：{{ (r.context?.ask) || '[提问]' }} → {{ (r.response?.analysis || r.response?.board || JSON.stringify(r.response)) }}
+          </li>
+          <li v-if="!aiLogs.length" style="color:#9ca3af">暂无记录</li>
+        </ul>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px;">
         <input
           v-model="input"
           placeholder="输入你的问题，例如：‘登鹳雀楼的志向如何体现在意象中？’"

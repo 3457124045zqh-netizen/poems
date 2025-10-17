@@ -9,6 +9,7 @@ const router = useRouter()
 
 const remotePoem = ref(null)
 const remoteAnns = ref([])
+const assets = ref([])
 
 const poem = computed(() => remotePoem.value)
 const vertical = ref(false)
@@ -46,6 +47,10 @@ onMounted(async () => {
         const arr = await listAnnotations(p.id)
         remoteAnns.value = Array.isArray(arr) ? arr : []
       } catch { /* 忽略注释失败 */ }
+      try {
+        const a = await (await import('../api/supabase')).listAssets(p.id)
+        assets.value = Array.isArray(a) ? a : []
+      } catch { /* 忽略多模态失败 */ }
     }
   } catch {
     // 回退到本地
@@ -150,11 +155,13 @@ function back() {
             </header>
             <div v-show="openMedia" class="content">
               <ul style="margin:0;padding-left:18px">
-                <li>名家朗诵音频（预留位）</li>
-                <li>意境水墨插画（预留位）</li>
-                <li>轻量 3D 场景（预留位）</li>
+                <li v-for="(m,i) in assets" :key="i">
+                  <span style="color:var(--ink-soft)">{{ m.kind }}</span> ·
+                  <a :href="m.url" target="_blank" rel="noreferrer">打开</a>
+                </li>
+                <li v-if="!assets.length" style="color:#9ca3af">暂无多模态资源</li>
               </ul>
-              <p style="color:#9ca3af;margin-top:8px">说明：点击后按需加载，避免首屏过重。</p>
+              <p style="color:#9ca3af;margin-top:8px">说明：资源来自表 multimodal_assets。</p>
             </div>
           </div>
         </aside>

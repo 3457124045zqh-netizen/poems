@@ -1,22 +1,27 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { listImageryStats, listResearchTopics, listResearchSamples } from '../api/supabase'
 
-const topics = ['意象分析', '诗人专题', '时代风格']
+const topics = ref(['意象分析', '诗人专题', '时代风格'])
 const active = ref('意象分析')
 
-const samples = [
-  { label: '李白 · 月亮意象', desc: '统计“月”相关诗句的出现频率与情感倾向。' },
-  { label: '边塞诗 · 孤城', desc: '边塞意象中的“孤城”所指向的群体情感。' },
-  { label: '唐宋对比 · 送别诗', desc: '唐宋时期送别主题的表达差异。' }
-]
+const samples = ref([])
 
-const chart = ref([
-  { name: '月亮', value: 68 },
-  { name: '江河', value: 52 },
-  { name: '杨柳', value: 43 },
-  { name: '边塞', value: 31 },
-  { name: '孤城', value: 22 }
-])
+const chart = ref([])
+onMounted(async () => {
+  try {
+    const s = await listImageryStats(100)
+    chart.value = (s || []).map(x => ({ name: x.name, value: x.value }))
+  } catch {}
+  try {
+    const t = await listResearchTopics()
+    if (Array.isArray(t) && t.length) topics.value = t.map(x => x.name)
+  } catch {}
+  try {
+    const rs = await listResearchSamples()
+    if (Array.isArray(rs)) samples.value = rs
+  } catch {}
+})
 
 function exportCSV() {
   const rows = [['意象', '频次'], ...chart.value.map(x => [x.name, x.value])]
@@ -62,7 +67,7 @@ function exportCSV() {
             <div class="card-body">
               <h4 class="card-title">{{ s.label }}</h4>
               <p class="card-desc">{{ s.desc }}</p>
-              <div class="card-meta">可视化面板（占位）</div>
+              <div class="card-meta">来自 research_samples</div>
             </div>
           </article>
         </div>
