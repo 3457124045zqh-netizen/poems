@@ -6,14 +6,12 @@ const getConfig = () => {
 
 const headers = () => {
   const { key } = getConfig()
-  // 优先使用登录获取的 JWT；未登录则使用 anon key
-  let token = null
-  try { token = localStorage.getItem('SB_TOKEN') || null } catch {}
+  // 公共读取统一使用 anon key，避免本地过期 SB_TOKEN 造成 401
   return {
-    'apikey': key,
-    'Authorization': `Bearer ${token || key}`,
+    apikey: key,
+    Authorization: `Bearer ${key}`,
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    Accept: 'application/json'
   }
 }
 

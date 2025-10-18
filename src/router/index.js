@@ -6,7 +6,8 @@ const EduConsole = () => import('../views/EduConsole.vue')
 const ResearchLab = () => import('../views/ResearchLab.vue')
 const Learning = () => import('../views/Learning.vue')
 const Assistant = () => import('../views/Assistant.vue')
-const Auth = () => import('../views/Auth.vue')
+/* 登录页面暂时下线 */
+// const Auth = () => import('../views/Auth.vue')
 
 export const routes = [
   { path: '/', name: 'home', component: Home, meta: { title: '诗韵灵犀 · 首页' } },
@@ -15,7 +16,7 @@ export const routes = [
   { path: '/research', name: 'research', component: ResearchLab, meta: { title: '研究台 · 文化分析', requiresRole: 'researcher' } },
   { path: '/learning', name: 'learning', component: Learning, meta: { title: '我的学习' } },
   { path: '/assistant', name: 'assistant', component: Assistant, meta: { title: 'AI 助手' } },
-  { path: '/auth', name: 'auth', component: Auth, meta: { title: '账户 · 登录' } },
+  // { path: '/auth', name: 'auth', component: Auth, meta: { title: '账户 · 登录' } },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
@@ -25,12 +26,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  // 未登录统一跳转到 /auth（仅 /auth 自身放行）
-  let token = null
-  try { token = localStorage.getItem('SB_TOKEN') || null } catch {}
-  if (!token && to.name !== 'auth') {
-    return next({ name: 'auth' })
-  }
+  // 登录拦截暂时关闭，无需跳转
+  // let token = null
+  // try { token = localStorage.getItem('SB_TOKEN') || null } catch {}
+  // if (!token && to.name !== 'auth') {
+  //   return next({ name: 'auth' })
+  // }
 
   // 角色要求检查
   const need = to.meta?.requiresRole
@@ -38,8 +39,8 @@ router.beforeEach((to, from, next) => {
   let role = 'student'
   try { role = localStorage.getItem('role') || 'student' } catch {}
   if (role === need) return next()
-  alert('当前角色无权访问该页面，请在右上角切换角色或前往登录。')
-  next({ name: 'auth' })
+  alert('当前角色无权访问该页面，请在右上角切换角色。')
+  next({ name: 'home' })
 })
 router.afterEach((to) => {
   if (to.meta?.title) document.title = to.meta.title

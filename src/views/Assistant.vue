@@ -12,7 +12,7 @@ const aiLogs = ref([])
 onMounted(async () => {
   try { aiLogs.value = await listAIResponses(5) } catch {}
 })
-const DEFAULT_N8N_URL = 'https://zhangqinghua.app.n8n.cloud/webhook-test/989bb19c-fa2d-4550-889d-fe9f393c2c18'
+const DEFAULT_N8N_URL = 'https://zhangqinghua.app.n8n.cloud/webhook/989bb19c-fa2d-4550-889d-fe9f393c2c18'
 const apiInput = ref((typeof localStorage !== 'undefined' && localStorage.getItem('AI_API')) || DEFAULT_N8N_URL)
 function saveApi() {
   try { localStorage.setItem('AI_API', apiInput.value || '') } catch {}
