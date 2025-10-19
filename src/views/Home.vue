@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { listPoems } from '../api/supabase'
+import { listPoems, listAssets } from '../api/supabase'
 
 const router = useRouter()
 
@@ -14,6 +14,26 @@ const entries = [
 
 const all = ref([])
 const featured = ref([])
+const coverById = ref({})
+
+/** 当没有封面资源时的兜底图片（按诗词 id 生成稳定占位图） */
+function getFallback(poem) {
+  const title = (poem && poem.title) ? String(poem.title) : '诗词';
+  const svg =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='300'>" +
+      "<defs>" +
+        "<linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
+          "<stop offset='0%' stop-color='#e5e7eb'/>" +
+          "<stop offset='100%' stop-color='#d1d5db'/>" +
+        "</linearGradient>" +
+      "</defs>" +
+      "<rect width='600' height='300' fill='url(#g)'/>" +
+      "<text x='300' y='160' text-anchor='middle' font-size='28' fill='#6b7280' font-family='Segoe UI,Roboto,Helvetica,Arial,Noto Sans,sans-serif'>" +
+        (title || '') +
+      "</text>" +
+    "</svg>";
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
 const q = ref('')
 const filtered = computed(() => {
   const kw = q.value.trim()
@@ -31,6 +51,14 @@ onMounted(async () => {
     if (Array.isArray(remote) && remote.length) {
       all.value = remote
       featured.value = remote.slice(0, 6)
+      // 加载每首诗的封面图
+      for (const p of featured.value) {
+        try {
+          const assets = await listAssets(p.id)
+          const cover = Array.isArray(assets) ? assets.find(a => a.kind === 'cover') : null
+          if (cover && cover.url) coverById.value[p.id] = cover.url
+        } catch {}
+      }
     }
   } catch {
     // 忽略，回退到本地数据
@@ -66,7 +94,10 @@ function goEntry(e) {
       </div>
       <div class="cards">
         <article class="card" v-for="p in filtered" :key="p.id" @click="goDetail(p)" style="cursor:pointer">
-          <div class="card-cover"></div>
+          <div
+            class="card-cover"
+            :style="{ backgroundImage: `url(${coverById[p.id] || getFallback(p)})` }"
+          ></div>
           <div class="card-body">
             <h4 class="card-title">{{ p.title }}</h4>
             <div class="card-meta">{{ p.dynasty }} · {{ p.author }}</div>
@@ -79,4 +110,12 @@ function goEntry(e) {
 </template>
 
 <style scoped>
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-cover{height:96px;background:linear-gradient(#f4f4f4,#eee);background-size:cover;background-position:center}
+.card-body{padding:12px}
+.card-title{margin:0 0 6px 0}
+.card-meta{color:#666;font-size:12px;margin-bottom:6px}
+.card-desc{color:#444;margin:0}
+@media (max-width:768px){.cards{grid-template-columns:1fr}}
 </style>

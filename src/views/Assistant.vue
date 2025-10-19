@@ -111,7 +111,7 @@ function send() {
     })
     .then((data) => {
       const reply = formatReply(data)
-      messages.value.push({ role: 'ai', text: reply || '（占位）我将从意象与情感脉络开始分析。' })
+      messages.value.push({ role: 'ai', text: reply || '正在分析...' })
     })
     .catch((err) => {
       console.error('[AI error]', err)
@@ -157,16 +157,7 @@ function send() {
         </div>
       </div>
 
-      <div class="detail-card" style="margin-top:10px;">
-        <div class="card-meta" style="margin-bottom:6px;">最近 AI 记录（来自表 ai_responses）</div>
-        <ul style="margin:0;padding-left:18px;">
-          <li v-for="(r,i) in aiLogs" :key="i">
-            <span style="color:var(--muted);font-size:12px;">{{ new Date(r.created_at).toLocaleString() }}</span>
-            ：{{ (r.context?.ask) || '[提问]' }} → {{ (r.response?.analysis || r.response?.board || JSON.stringify(r.response)) }}
-          </li>
-          <li v-if="!aiLogs.length" style="color:#9ca3af">暂无记录</li>
-        </ul>
-      </div>
+
 
       <div style="display:flex;gap:8px;margin-top:10px;">
         <input
